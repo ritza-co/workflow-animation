@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Examples of D3 transitions</title>
+        <style>
+            svg {
+                border: 1px solid black;
+            }
+            fieldset {
+                min-width: 0; 
+                width: 100%; 
+            }
+            text {
+                font-family: 'Arial', sans-serif;
+                font-size: 0.5em;
+            }
+        </style>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script>
+            var colors = ['#00429d', '#325da9', '#4e78b5', '#6694c1', '#80b1cc', '#9dced6', '#c0eade', '#ffdac4', '#ffb3a7', '#fb8a8c', '#eb6574', '#d5405e', '#b81b4a', '#93003a'];
+            var states = ["Brief", "Draft", "QA", "Edit", "Distribute", "Done"];
+            var tasks = [
+                {"id": "0", "states": {"0": new Date('2022-10-01T03:24:00'), "1": new Date('2022-10-02T03:24:00')}},
+                {"id": "1", "states": {"0": new Date('2022-10-01T06:24:00'), "1": new Date('2022-10-02T06:24:00')}}
+            ];
+
+            function convert_tasks_to_events(tasks) {
+                // {"date": Date('2022-10-02T03:24:00'), "id": 0, "move_to_state": "0"}
+                var events = [];
+                for (const i in tasks) {
+                    for (const [state, state_date] of Object.entries(tasks[i]["states"])) {
+                        event = {"date": state_date, "move_to_state": state, "id": tasks[i]["id"]};
+                        events.push(event);
+                    }
+                }
+                events.sort((a, b) => (a.date > b.date) ? 1 : -1)
+                return events;
+            }
+                    
+            function run() {
+                events = convert_tasks_to_events(tasks);
+                setup(events);
+                runTransitions(events);
+            }
+
+            function setup(events) {
+                var y = 40;
+                var curr_x = 50;
+
+                var svg = d3.select("#board").append("svg")
+                    .attr("width", 485)
+                    .attr("height", 270)
+                    .attr("id", "mainsvg");
+
+                    for (const i in states) { 
+                        svg.append("text")
+                            .attr("x", curr_x)
+                            .attr("y", y)
+                            .text(states[i]);
+                        curr_x += 60;
+                    }
+
+                    curr_x = 50;
+                    y = 50;
+
+                    for (const i in states) {
+                        var color = colors[i]
+                        svg.append("rect")
+                            .attr("x", curr_x)
+                            .attr("y", y)
+                            .attr("height", 20)
+                            .attr("width", 50)
+                            .attr("opacity", 0.3)
+                            .attr("fill", color)
+                            .attr("stroke", color);
+                        curr_x += 60
+                    }
+
+                    for (const i in tasks) {
+                        svg.append("rect")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .attr("width",1)
+                            .attr("height",1)
+                            .attr("id", "task" + i)
+                            .attr("stroke", "blue")
+                            .attr("fill", "blue");
+                    }
+           }
+
+           function move_to_state(task, state) {
+               console.log(task);
+               d3.select("#task" + task)
+                .transition()
+                .attr("y", 60)
+                .attr("x", 60)
+                .duration(500);
+           }
+
+           function runTransitions(events){
+               for (const i in events) {
+                   console.log(events[i]);
+                   move_to_state(events[i]["id"], events[i]["move_to_state"]);
+               }
+           }
+
+                    
+        </script>
+    </head>
+    <body onload="run()">
+        <div id="board" width="100%" height="100%">
+        </div>
+    </body>
+</html>
+
+
+
+
